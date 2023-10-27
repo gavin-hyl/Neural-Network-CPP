@@ -11,7 +11,7 @@ class DataPoint {
         Matrix expected;
         bool hasExpected;
         DataPoint(const Matrix data);
-        DataPoint(const Matrix input, const Matrix expected);
+        DataPoint(Matrix input, Matrix expected);
 };
 
 // class DataSet {

@@ -48,7 +48,9 @@ Matrix NeuralNetwork::feedForward(const Matrix& input, bool getMax, bool recordL
 }
 
 void NeuralNetwork::backPropagate(DataPoint point) {
-    Matrix deltaL = gradOutputCost(feedForward(point.data, false, true), point.expected);
+    Matrix netOut = feedForward(point.data, false, true);
+    Matrix deltaL = gradOutputCost(netOut, point.expected);
+    deltaL = deltaL.literalMult(softmaxP(netOut));
     Matrix &dL = deltaL;
     for (int layer = nLayers-2; layer >= 0; layer--) {
         // layer=0 corresponds to the first layer and the weights from the first to second layer
@@ -56,7 +58,8 @@ void NeuralNetwork::backPropagate(DataPoint point) {
         Matrix &gBC = gradientBiasCost[layer];
         gWC = gWC + (dL * layerValues[layer].T());
         gBC = gBC + dL;
-        dL = sigmaP(weights[layer].T() * dL);
+        dL = weights[layer].T() * dL;
+        dL = dL.literalMult(sigmaP(dL));
     }
 }
 
@@ -69,14 +72,16 @@ void NeuralNetwork::gradientDescent(vector<DataPoint> dataset, double dBias=DEFA
         for (int layer = 0; layer < nLayers - 1; layer++) {
             Matrix &w = weights[layer];
             Matrix &b = biases[layer];
-            w = w - (gradientWeightCost[layer] * dWeight * (1/setSize));
-            // gradientWeightCost[layer].clear();
-            b = b - (gradientBiasCost[layer] * dBias * (1/setSize));
-            // gradientBiasCost[layer].clear();
+            Matrix &gWC = gradientWeightCost[layer];
+            Matrix &gBC = gradientBiasCost[layer];
+            w = w - (gWC * dWeight * (1/setSize));
+            gWC.clear();
+            b = b - (gWC * dBias * (1/setSize));
+            gWC.clear();
         }
-        std::cout << "weight[0]\n" << weights[0];
-        std::cout << "bias[0]\n" << biases[0];
-        std::cout << "epoch " << i+1 << " finished" << std::endl;
+        // std::cout << "weight[0]\n" << weights[0];
+        // std::cout << "bias[0]\n" << biases[0];
+        // std::cout << "epoch " << i+1 << " finished" << std::endl;
         std::cout << "dataset accuracy = " << this->testNetwork(dataset) << "\n-----\n" << std::endl;
     }
 }

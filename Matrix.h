@@ -20,9 +20,11 @@ class Matrix
         Matrix operator + (const Matrix& m) const;
         Matrix operator - (const Matrix& m) const;
         Matrix operator * (const Matrix& m) const;
+        Matrix literalMult(const Matrix& M);
         Matrix operator * (const double& c) const;
         Matrix operator ^ (int pow);
         bool operator == (Matrix m);
+        void print();
         friend std::ostream& operator << (std::ostream& out, const Matrix& M);
     
         bool eq_size(Matrix m);

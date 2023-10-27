@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <ctime>
 #include "Matrix.h"
 
 using std::vector;
@@ -28,10 +29,11 @@ Matrix::Matrix(int r, int c, int type, double (*gen)(int , int)) {
         }
     }
     else if (type == RANDOM) {
+        srand((int) time(0));
         while(r-- > 0) {
             vector<double> row(c);
             for (double& e : row){
-                e = (2.0*rand()/RAND_MAX) - 1;
+                e = (1.0*rand()/RAND_MAX) - 0.5;
             }
             elements.push_back(row);
         }
@@ -134,6 +136,16 @@ std::ostream& operator << (std::ostream& out, const Matrix& m) {
     return out << "-----\n";
 }
 
+void Matrix::print() {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            std::cout << elements[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "-----\n";
+}
+
 void Matrix::clear() {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -209,4 +221,14 @@ Matrix Matrix::dup() {
         }
     }
     return duplicate;
+}
+
+Matrix Matrix::literalMult(const Matrix& M) {
+    Matrix result = Matrix(rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            result.elements[i][j] = this->elements[i][j] * M.elements[i][j];
+        }
+    }
+    return result;
 }

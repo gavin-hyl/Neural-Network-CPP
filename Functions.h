@@ -2,6 +2,7 @@
 #include "Matrix.h"
 
 Matrix softmax(const Matrix& v);
+Matrix softmaxP(Matrix v);
 double sigma(double d);
 Matrix sigma(const Matrix& m);
 Matrix sigmaP(Matrix m);

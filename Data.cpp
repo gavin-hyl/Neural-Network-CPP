@@ -11,7 +11,7 @@ DataPoint::DataPoint(const Matrix data) {
     hasExpected = false;
 }
 
-DataPoint::DataPoint(const Matrix input, const Matrix expected) {
+DataPoint::DataPoint(Matrix input, Matrix expected) {
     this->data = input;
     this->expected = expected;
     hasExpected = true;
