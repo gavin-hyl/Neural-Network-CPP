@@ -28,21 +28,21 @@ Matrix NeuralNetwork::gradOutputCost(const Matrix& output, const Matrix& expecte
     return (output - expected) * 2;
 }
 
-Matrix NeuralNetwork::feedForward(Matrix input, bool getMax, bool recordLayerValues) {
+Matrix NeuralNetwork::feedForward(const Matrix& input, bool getMax, bool recordLayerValues) {
+    Matrix output = input;
     for (int i = 0; i < nLayers - 1; i++) {
         if (recordLayerValues) {
-            layerValues.at(i) = input;
+            layerValues.at(i) = output;
         }
-        input = sigma(weights[i] * input + biases[i]);
+        output = sigma(weights[i] * output + biases[i]);
     }
-    Matrix output = softmax(input);
+    output = softmax(output);
     layerValues.at(nLayers-1) = output;
     if (getMax) {
         vector<double> outArray = output.getVectorCol(0);
         int maxIdx = std::max_element(outArray.begin(), outArray.end()) - outArray.begin();
-        output = Matrix(outArray.size(), 1);
-        output.elements[maxIdx][0] = 1; // all other elements are 0
-        return output;
+        output.clear();
+        output.elements[maxIdx][0] = 1;
     }
     return output;
 }
@@ -52,33 +52,32 @@ void NeuralNetwork::backPropagate(DataPoint point) {
     Matrix &dL = deltaL;
     for (int layer = nLayers-2; layer >= 0; layer--) {
         // layer=0 corresponds to the first layer and the weights from the first to second layer
-        // std::cout << deltaL;
         Matrix &gWC = gradientWeightCost[layer];
         Matrix &gBC = gradientBiasCost[layer];
-        gWC = (dL * layerValues[layer].T());
-        gBC = dL;
+        gWC = gWC + (dL * layerValues[layer].T());
+        gBC = gBC + dL;
         dL = sigmaP(weights[layer].T() * dL);
     }
 }
 
-void NeuralNetwork::gradientDescent(vector<DataPoint> dataset, double learnStep=DEFAULT_LEARN_STEP, int epochs=1) {
-    int setSize = dataset.size();
+void NeuralNetwork::gradientDescent(vector<DataPoint> dataset, double dBias=DEFAULT_LEARN_STEP, double dWeight=DEFAULT_LEARN_STEP, int epochs=1) {
+    double setSize = dataset.size();
     for (int i = 0; i < epochs; i++) {
         for (DataPoint dp : dataset) {
             backPropagate(dp);
-            // std::cout << gradientWeightCost[0];        
-            // std::cout << weights[0];
-            for (int layer = 0; layer < nLayers - 1; layer++) {
-                Matrix &w = weights[layer];
-                Matrix &b = biases[layer];
-                w = w - (gradientWeightCost[layer] * learnStep);
-                // gradientWeightCost[layer].clear();
-                b = b - (gradientBiasCost[layer] * learnStep);
-                // gradientBiasCost[layer].clear();
-            }
         }
+        for (int layer = 0; layer < nLayers - 1; layer++) {
+            Matrix &w = weights[layer];
+            Matrix &b = biases[layer];
+            w = w - (gradientWeightCost[layer] * dWeight * (1/setSize));
+            // gradientWeightCost[layer].clear();
+            b = b - (gradientBiasCost[layer] * dBias * (1/setSize));
+            // gradientBiasCost[layer].clear();
+        }
+        std::cout << "weight[0]\n" << weights[0];
+        std::cout << "bias[0]\n" << biases[0];
         std::cout << "epoch " << i+1 << " finished" << std::endl;
-        std::cout << "test accuracy = " << this->testNetwork(dataset) << std::endl;
+        std::cout << "dataset accuracy = " << this->testNetwork(dataset) << "\n-----\n" << std::endl;
     }
 }
 
@@ -88,7 +87,5 @@ double NeuralNetwork::testNetwork(vector<DataPoint> dataset) {
     for (DataPoint dp : dataset) {
         nCorrect += (feedForward(dp.data, true, false) == dp.expected);
     }
-    nCorrect = nCorrect / setSize;
-
-    return nCorrect;
+    return nCorrect / setSize;
 }

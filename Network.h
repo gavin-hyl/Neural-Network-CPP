@@ -52,7 +52,7 @@ class NeuralNetwork {
          * @param recordLayerValues if true, records the layer values internally
          * @return (Matrix) the output
          */
-        Matrix feedForward(Matrix input, bool getMax=false, bool recordLayerValues=false);
+        Matrix feedForward(const Matrix& input, bool getMax=false, bool recordLayerValues=false);
         
         /**
          * @brief Calculate the gradient of the cost function at one data point, stores result in gradient Weight/Bias Cost
@@ -66,7 +66,7 @@ class NeuralNetwork {
          * 
          * @param learnStep step size
          */
-        void gradientDescent(vector<DataPoint> dataset, double learnStep, int epochs);
+        void gradientDescent(vector<DataPoint> dataset, double, double, int);
 
         /**
          * @brief Test network accuracy based on a testing set
