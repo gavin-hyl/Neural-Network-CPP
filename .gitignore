@@ -1,3 +1,5 @@
 test/
 .vscode/
 /Vector.cpp
+MatrixTest.cpp
+NetworkTest.cpp

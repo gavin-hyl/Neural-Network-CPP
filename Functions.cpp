@@ -4,18 +4,20 @@
 
 using std::vector;
 
-Matrix softmax(Matrix v) {
+Matrix softmax(const Matrix& v) {
     double sum = 0;
     Matrix result = Matrix(v.rows, 1);
     for (int i = 0; i < v.rows; i++) {
-        sum += exp(v.elements[i][0]);
+        result.elements[i][0] = exp(v.elements[i][0]);
+        sum += result.elements[i][0];
     }
     for (int i = 0; i < v.rows; i++) {
-        result.elements[i][0] = exp(v.elements[i][0]) / sum;
+        result.elements[i][0] = result.elements[i][0] / sum;
     }
+    return result;
 }
 
-// calculates d(s(x, k))/d(x, k), assuming that the elements of v have been passed through the softmax functiond
+// calculates d(s(x, k))/d(x, k), assuming that the elements of v have been passed through the softmax function
 Matrix softmaxP(Matrix v) {
     Matrix result = Matrix(v.rows, v.cols);
     double e;
@@ -25,13 +27,14 @@ Matrix softmaxP(Matrix v) {
             result.elements[i][j] = e * (1-e);
         }
     }
+    return result;
 }
 
 double sigma(double d) {
     return 1 / (exp(-d) + 1);
 }
 
-Matrix sigma(Matrix m) {
+Matrix sigma(const Matrix& m) {
     Matrix result = Matrix(m.rows, m.cols);
     for (int i = 0; i < m.rows; i++) {
         for (int j = 0; j < m.cols; j++) {
@@ -41,7 +44,7 @@ Matrix sigma(Matrix m) {
     return result;
 }
 
-// assuming that the elements in m have already been passed throught the sigma function!!!
+// assuming that the elements in m have already been passed through the sigma function!!!
 Matrix sigmaP(Matrix m) {
     Matrix result = Matrix(m.rows, m.cols);
     double e;
@@ -51,6 +54,7 @@ Matrix sigmaP(Matrix m) {
             result.elements[i][j] = e * (1-e);
         }
     }
+    return result;
 }
 
 double ReLU(double d) {

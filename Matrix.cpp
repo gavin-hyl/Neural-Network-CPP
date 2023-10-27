@@ -52,8 +52,7 @@ bool Matrix::eq_size(Matrix m) { return cols == m.cols && rows == m.rows; }
 bool Matrix::is_sqr() {return cols == rows; }
 bool Matrix::valid_mult(Matrix m) { return cols == m.rows; }
 
-Matrix Matrix::operator + (Matrix m) {
-    if (!eq_size(m)) { throw SIZE; }
+Matrix Matrix::operator + (const Matrix& m) const {
     Matrix result = Matrix(rows, cols);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -63,8 +62,7 @@ Matrix Matrix::operator + (Matrix m) {
     return result;
 }
 
-Matrix Matrix::operator - (Matrix m) {
-    if (!eq_size(m)) { throw SIZE; }
+Matrix Matrix::operator - (const Matrix& m) const {
     Matrix result = Matrix(rows, cols);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -74,12 +72,11 @@ Matrix Matrix::operator - (Matrix m) {
     return result;
 }
 
-Matrix Matrix::operator * (Matrix m) {
-    if (!valid_mult(m)) { throw SIZE; }
+Matrix Matrix::operator * (const Matrix& m) const {
     int c = m.cols;
     Matrix result = Matrix(rows, c);
     for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
+        for (int j = 0; j < c; j++) {
             for (int k = 0; k < cols; k++) {
                 result.elements[i][j] += elements[i][k] * m.elements[k][j];
             }
@@ -88,7 +85,7 @@ Matrix Matrix::operator * (Matrix m) {
     return result;
 }
 
-Matrix Matrix::operator * (double c) {
+Matrix Matrix::operator * (const double& c) const {
     Matrix result = Matrix(rows, cols);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -134,7 +131,15 @@ std::ostream& operator << (std::ostream& out, const Matrix& m) {
         }
         out << std::endl;
     }
-    return out;
+    return out << "-----\n";
+}
+
+void Matrix::clear() {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            this->elements[i][j] = 0;
+        }
+    }
 }
 
 Matrix Matrix::T() {
@@ -164,6 +169,12 @@ Matrix Matrix::toMatrix(vector<double> elements, int r, int c) {
     return M;
 }
 
+Matrix Matrix::toMatrix(double e) {
+    Matrix M = Matrix(1, 1);
+    M.elements[0][0] = e;
+    return M;
+}
+
 vector<double> Matrix::getRow(int r) {
     vector<double> row;
     for (int i = 0; i < cols; i++) {
@@ -178,12 +189,6 @@ vector<double> Matrix::getVectorCol(int c) {
         col.push_back(elements[i][c]);
     }
     return col;
-}
-
-Matrix Matrix::toMatrix(double e) {
-    Matrix M = Matrix(1);
-    M.elements[0][0] = e;
-    return M;
 }
 
 double Matrix::abs() {
