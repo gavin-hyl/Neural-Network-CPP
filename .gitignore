@@ -1,8 +1,5 @@
 .vscode/
-/Vector.cpp
-MatrixTest.cpp
 NetworkTest.cpp
 *.exe
 Read.cpp
 Read.h
-data/
