@@ -18,7 +18,7 @@ Matrix softmax(const Matrix& v) {
 }
 
 // calculates d(s(x, k))/d(x, k), assuming that the elements of v have been passed through the softmax function
-Matrix softmaxP(Matrix v) {
+Matrix softmax_P(Matrix v) {
     Matrix result = Matrix(v.rows, v.cols);
     double e;
     for (int i = 0; i < v.rows; i++) {
@@ -45,7 +45,7 @@ Matrix sigma(const Matrix& m) {
 }
 
 // assuming that the elements in m have already been passed through the sigma function!!!
-Matrix sigmaP(Matrix m) {
+Matrix sigma_P(Matrix m) {
     Matrix result = Matrix(m.rows, m.cols);
     double e;
     for (int i = 0; i < m.rows; i++) {
@@ -57,7 +57,7 @@ Matrix sigmaP(Matrix m) {
     return result;
 }
 
-double ReLU(double d) {
+inline double ReLU(double d) {
     return (d > 0) ? d : 0;
 }
 
@@ -66,6 +66,16 @@ Matrix ReLU(Matrix m) {
     for (int i = 0; i < m.rows; i++) {
         for (int j = 0; j < m.cols; j++) {
             result.elements[i][j] = ReLU(m.elements[i][j]);
+        }
+    }
+    return result;
+}
+
+Matrix ReLU_P(Matrix m) {
+    Matrix result = Matrix(m.rows, m.cols);
+    for (int i = 0; i < m.rows; i++) {
+        for (int j = 0; j < m.cols; j++) {
+            result.elements[i][j] = m.elements[i][j] > 0;
         }
     }
     return result;

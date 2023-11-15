@@ -20,19 +20,24 @@ class Matrix
         Matrix operator + (const Matrix& m) const;
         Matrix operator - (const Matrix& m) const;
         Matrix operator * (const Matrix& m) const;
-        Matrix literalMult(const Matrix& M);
+        Matrix schur(const Matrix& M);
         Matrix operator * (const double& c) const;
         Matrix operator ^ (int pow);
         bool operator == (Matrix m);
+        double &operator() (int r, int c);
         void print();
         friend std::ostream& operator << (std::ostream& out, const Matrix& M);
     
         bool eq_size(Matrix m);
         static Matrix toMatrix(vector<double> elements, int r, int c);
+        static Matrix toMatrix(vector<double> elements);
         static Matrix toMatrix(double e);
+        static Matrix toBasis(int idx, int dim);
         void clear();
         vector<double> getRow(int r);
+        int setRow(vector<double> row, int r);
         vector<double> getVectorCol(int c);
+        int setCol(vector<double> col, int c);
         bool is_sqr();
         bool valid_mult(Matrix m);
         double abs();

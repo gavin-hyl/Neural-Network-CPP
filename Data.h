@@ -10,8 +10,9 @@ class DataPoint {
         Matrix data;
         Matrix expected;
         bool hasExpected;
-        DataPoint(const Matrix data);
+        DataPoint(Matrix data);
         DataPoint(Matrix input, Matrix expected);
+        void print(void);
 };
 
 // class DataSet {

@@ -136,6 +136,11 @@ std::ostream& operator << (std::ostream& out, const Matrix& m) {
     return out << "-----\n";
 }
 
+double &Matrix::operator() (int r, int c)
+{
+    return elements.at(r).at(c);
+}
+
 void Matrix::print() {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -149,42 +154,57 @@ void Matrix::print() {
 void Matrix::clear() {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            this->elements[i][j] = 0;
+            this->elements.at(i).at(j) = 0;
         }
     }
 }
 
 Matrix Matrix::T() {
-    Matrix T = Matrix(cols, rows);
+    Matrix transpose = Matrix(cols, rows);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            T.elements[j][i] = elements[i][j];
+            transpose.elements[j][i] = elements[i][j];
         }
     }
-    return T;
+    return transpose;
 }
 
 // column major
-Matrix Matrix::toMatrix(vector<double> elements, int r, int c) {
-    Matrix M = Matrix(r, c);
-    int size = elements.size();
-    int idx = 0;
-    for (int i = 0; i < c; i++) {
-        for (int j = 0; j < r; j++) {
-            int idx = i*r + c;
-            if (idx >= size) {
-                return M;  // the others were filled with 0 anyway
-            }
-            M.elements[j][i] = elements[idx];
-        }
+// Matrix Matrix::toMatrix(vector<double> elements, int r, int c) {
+//     Matrix M = Matrix(r, c);
+//     int size = elements.size();
+//     int idx = 0;
+//     for (int i = 0; i < c; i++) {
+//         for (int j = 0; j < r; j++) {
+//             int idx = i*r + c;
+//             if (idx >= size) {
+//                 return M;  // the others were filled with 0 anyway
+//             }
+//             M.elements[j][i] = elements[idx];
+//         }
+//     }
+//     return M;
+// }
+
+Matrix Matrix::toMatrix(vector<double> elements) {
+    int d = elements.size();
+    Matrix M = Matrix(d, 1);
+    for (int i = 0; i < d; i++) {
+        M.elements[i][0] = elements[i];
     }
     return M;
-}
+} 
 
 Matrix Matrix::toMatrix(double e) {
     Matrix M = Matrix(1, 1);
     M.elements[0][0] = e;
     return M;
+}
+
+Matrix Matrix::toBasis(int idx, int dim) {
+    Matrix V = Matrix(dim, 1);
+    V.elements[idx][0] = 1;
+    return V;
 }
 
 vector<double> Matrix::getRow(int r) {
@@ -207,10 +227,10 @@ double Matrix::abs() {
     double result = 0;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            result += pow(elements[i][j], 2);
+            result += elements[i][j] * elements[i][j];
         }
     }
-    return pow(result, 0.5);
+    return result;
 }
 
 Matrix Matrix::dup() {
@@ -223,7 +243,7 @@ Matrix Matrix::dup() {
     return duplicate;
 }
 
-Matrix Matrix::literalMult(const Matrix& M) {
+Matrix Matrix::schur(const Matrix& M) {
     Matrix result = Matrix(rows, cols);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {

@@ -5,7 +5,7 @@
 
 using std::vector;
 
-DataPoint::DataPoint(const Matrix data) {
+DataPoint::DataPoint(Matrix data) {
     this->data = data;
     this->expected = Matrix(1, 1);
     hasExpected = false;
@@ -15,6 +15,11 @@ DataPoint::DataPoint(Matrix input, Matrix expected) {
     this->data = input;
     this->expected = expected;
     hasExpected = true;
+}
+
+void DataPoint::print(void) {
+    data.print();
+    expected.print();
 }
 
 // DataSet::DataSet(const vector<DataPoint>& points) {

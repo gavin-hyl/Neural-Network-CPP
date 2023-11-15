@@ -2,9 +2,10 @@
 #include "Matrix.h"
 
 Matrix softmax(const Matrix& v);
-Matrix softmaxP(Matrix v);
+Matrix softmax_P(Matrix v);
 double sigma(double d);
 Matrix sigma(const Matrix& m);
-Matrix sigmaP(Matrix m);
+Matrix sigma_P(Matrix m);
 double ReLU(double d);
 Matrix ReLU(Matrix v);
+Matrix ReLU_P(Matrix v);
