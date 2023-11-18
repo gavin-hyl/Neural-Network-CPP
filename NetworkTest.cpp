@@ -13,13 +13,8 @@ using std::vector;
 
 Matrix testFunction(vector<double> input, int outDim)
 {
-    double expr = 0;
-    for (auto x : input)
-    {
-        expr += x;
-    }
     Matrix result = Matrix(outDim, 1);
-    if (expr > 0)
+    if (input[0] + input[1] > 0)
     {
         result.elements[0][0] = 1;
         // } else if (expr > 0) {
@@ -34,7 +29,7 @@ Matrix testFunction(vector<double> input, int outDim)
     return result;
 }
 
-double randFloat(double min, double max)
+double rand_float(double min, double max)
 {
     return (max - min) * rand() / RAND_MAX + min;
 }
@@ -47,7 +42,7 @@ vector<DataPoint> generateDataSet(int inputDim, int outputDim, int size)
     {
         for (int j = 0; j < inputDim; j++)
         {
-            input.push_back(randFloat(-10, 10));
+            input.push_back(rand_float(-10, 10));
         }
         DataPoint pt = DataPoint(Matrix::toMatrix(input), testFunction(input, outputDim));
         dataset.push_back(pt);
@@ -70,32 +65,57 @@ int main(int argc, char const *argv[])
     const int OUT_DIM = 2;
     // tests to see if the model can classify points inside the unit circle correctly.
     srand((int)time(0));
-    int nSamples = 1000;
+    int nSamples = 10000;
     vector<DataPoint> trainSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
     vector<DataPoint> testSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
 
     vector<int> layers = {IN_DIM, OUT_DIM};
     NeuralNetwork network = NeuralNetwork(layers);
 
-    network.feed_forward(trainSet[0].data, false, true).print();
-
-    std::cout << std::setprecision(4) << "Initial Accuracy (test)= " << network.test_network(testSet) << std::endl;
-    std::cout << std::setprecision(4) << "Initial Accuracy (train)= " << network.test_network(trainSet) << std::endl;
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 20; i++)
     {
-        network.gradient_descent(trainSet, 1E-3, 1E-2, nSamples / 10);
-        std::cout << "train set accuracy = " << network.test_network(trainSet) << std::endl;
-        // std::cout << "test set cost = " << network.cost(testSet) << std::endl;
-        std::cout << "train set cost = " << network.cost(trainSet) << std::endl;
-        if (i % 10 == 0)
-        {
-            printf("Weights:\n");
-            network.weights[0].print();
-            printf("Biases\n");
-            network.biases[0].print();
-        }
-        // _sleep(1000);
+        std::cout << "---------------------------------------------\n";
+    // std::cout << "Data Point\n";
+    // trainSet[i].print();
+    // vector<DataPoint> trainset = {trainSet[i]};
+
+    // std::cout << "Initial Prediction\n";
+    // network.feed_forward(trainSet[0].data, false, true).print();
+
+    // std::cout << "Parameters\n";
+    // network.weights[0].print();
+    // network.biases[0].print();
+
+    network.back_propagate(trainSet[i]);
+
+    // std::cout << "Gradients\n";
+    // network.w_gradients[0].print();
+    // network.b_gradients[0].print();
+
+    network.update_parameters(1E-2, 1E-2);
+    // std::cout << "Updated parameters\n";
+    // network.weights[0].print();
+    // network.biases[0].print();
+
+    std::cout << "After Descent, test accuracy =" << network.test_network(testSet) << "\n";
+    // _sleep(1000);
     }
+
+    // std::cout << std::setprecision(4) << "Initial Accuracy (train)= " << network.test_network(trainSet) << std::endl;
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     network.batch_descent(trainSet, 0, 5E-5, 1);
+    //     std::cout << "train set accuracy = " << network.test_network(trainSet) << std::endl;
+    //     std::cout << "train set cost = " << network.cost(trainSet) << std::endl;
+    //     if (i % 10 == 0)
+    //     {
+    //         printf("Weights:\n");
+    //         network.weights[0].print();
+    //         printf("Biases\n");
+    //         network.biases[0].print();
+    //     }
+    //     // _sleep(1000);
+    // }
     return 0;
 }
 
@@ -137,7 +157,7 @@ int main(int argc, char const *argv[])
 //     NeuralNetwork network = NeuralNetwork(layers);
 //     std::cout << std::setprecision (6) << "Initial Accuracy = " << network.test_network(dataset) << std::endl;
 //     for (int i = 0; i < 500; i++) {
-//         network.gradient_descent(dataset, 1E-6, 5E-5, 100);
+//         network.batch_descent(dataset, 1E-6, 5E-5, 100);
 //         std::cout << "train set accuracy = " << network.test_network(dataset) << std::endl;
 //         printf("Weights:\n");
 //         network.weights[0].print();

@@ -52,13 +52,13 @@ Matrix NeuralNetwork::feed_forward(const Matrix &input, bool getMax, bool record
     {
         for (int i = 0; i < num_layers - 1; i++)
         {
+            layer_values.at(i) = output;
             output = weights[i] * output + biases[i];
             // output = ReLU(output);
             output = sigma(output);
-            layer_values.at(i) = output;
         }
-        output = softmax(output);
         layer_values.back() = output;
+        output = softmax(output);
     }
     else
     {
@@ -78,54 +78,77 @@ Matrix NeuralNetwork::feed_forward(const Matrix &input, bool getMax, bool record
         output.clear();
         output.elements[maxIdx][0] = 1;
     }
+        // std::cout << "Layer value [0]\n";
+        // layer_values.at(0).print();
     return output;
 }
 
 void NeuralNetwork::back_propagate(DataPoint point)
 {
     Matrix net_out = feed_forward(point.data, false, true);
-    Matrix deltaL = gradient_output_cost(net_out, point.expected);
-    b_gradients.back() = b_gradients.back() + deltaL;
+    Matrix deltaL = softmax_P(gradient_output_cost(net_out, point.expected));
+    // std::cout << "Delta L\n";
+    // deltaL.print();
+    // b_gradients.back() = b_gradients.back() + deltaL;
 
     for (int layer = num_layers - 2; layer >= 0; layer--)
     {
         // layer=0 corresponds to the first layer and the weights from the first to second layer
-        w_gradients.at(layer) = w_gradients[layer] + (deltaL * layer_values.at(layer).T());
-        b_gradients.at(layer) = b_gradients[layer] + deltaL;
+        // std::cout << "layer values [0]\n";
+        // layer_values.at(layer).print();
+        w_gradients.at(layer) = (deltaL * layer_values.at(layer).T());
+        b_gradients.at(layer) = deltaL;
 
         // std::cout << w_gradients.at(layer).elements[0][0];
         // (deltaL * layer_values.at(layer).T()).print();
         deltaL = sigma_P(weights.at(layer).T() * deltaL);
-        // deltaL = ReLU_P(weights.at(layer).T() * deltaL);
     }
 }
 
-void NeuralNetwork::gradient_descent(vector<DataPoint> dataset, double dBias = DEFAULT_LEARN_STEP, double dWeight = DEFAULT_LEARN_STEP, double batchSize = 0)
+void NeuralNetwork::update_parameters(double d_weight, double d_bias)
 {
-    double setSize = dataset.size();
-    batchSize = (batchSize == 0 || batchSize > setSize) ? setSize : batchSize;
-    double weightLearnFactor = dWeight / batchSize;
-    double biasLeanFactor = dBias / batchSize;
-    // std::random_shuffle(dataset.begin(), dataset.end());
-    
-    for (int batchBegin = 0; batchBegin < setSize; batchBegin += batchSize)
+    for (int layer = 0; layer < num_layers - 1; layer++)
     {
-        int miniBatchSize = std::min(batchSize, setSize - batchBegin);
-        for (int i = 0; i < miniBatchSize; i++)
-        {
-            back_propagate(dataset.at(i + batchBegin));
-        }
-        for (int layer = 0; layer < num_layers - 1; layer++)
-        {
-            // std::cout << w_gradients.at(layer);
-            // std::cout << weights.at(layer).elements[0][0];
-            weights.at(layer) = weights.at(layer) - (w_gradients.at(layer) * weightLearnFactor);
-            biases.at(layer) = biases.at(layer) - (b_gradients.at(layer) * biasLeanFactor);
-            w_gradients.at(layer).clear();
-            b_gradients.at(layer).clear();
-        }
+        weights.at(layer) = weights[layer] - (w_gradients[layer] * d_weight);
+        biases.at(layer) = biases[layer] - (b_gradients[layer] * d_bias);
+        w_gradients.at(layer).clear();
+        b_gradients.at(layer).clear();
     }
 }
+
+void NeuralNetwork::stochastic_descent(vector<DataPoint> dataset, double dBias = DEFAULT_LEARN_STEP, double dWeight = DEFAULT_LEARN_STEP)
+{
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        stochastic_descent(dataset.at(i), dWeight, dBias);
+    }
+}
+
+void NeuralNetwork::stochastic_descent(DataPoint point, double dBias = DEFAULT_LEARN_STEP, double dWeight = DEFAULT_LEARN_STEP)
+{
+    back_propagate(point);
+    update_parameters(dWeight, dBias);
+}
+
+void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dBias = DEFAULT_LEARN_STEP, double dWeight = DEFAULT_LEARN_STEP, double batch_size = 0)
+{
+    double data_size = dataset.size();
+    batch_size = (batch_size == 0 || batch_size > data_size) ? data_size : batch_size;
+    double norm_d_weight = dWeight / batch_size;
+    double norm_d_bias = dBias / batch_size;
+    // std::random_shuffle(dataset.begin(), dataset.end());
+    
+    for (int batch_begin = 0; batch_begin < data_size; batch_begin += batch_size)
+    {
+        int this_batch_size = std::min(batch_size, data_size - batch_begin);
+        for (int i = 0; i < this_batch_size; i++)
+        {
+            back_propagate(dataset.at(i + batch_begin));
+        }
+        update_parameters(norm_d_weight, norm_d_bias);
+    }
+}
+
 
 void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double db, double dw, double gamma)
 {

@@ -72,14 +72,16 @@ public:
      */
     void back_propagate(DataPoint point);
 
-    void back_propagate(vector<DataPoint> dataset);
+    void update_parameters(double d_weight, double d_bias);
 
     /**
      * @brief Vanilla gradient descent algorithm, using the gradient calculated by back_propagate
      *
      * @param learnStep step size
      */
-    void gradient_descent(vector<DataPoint> dataset, double, double, double);
+    void batch_descent(vector<DataPoint> dataset, double, double, double);
+    void stochastic_descent(vector<DataPoint> dataset, double, double);
+    void stochastic_descent(DataPoint point, double, double);
 
     /**
      * @brief 
@@ -94,8 +96,6 @@ public:
     void nag_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
     void adagrad_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
     void adadelta_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
-
-    
     void adam_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
 
     /**

@@ -39,7 +39,6 @@ class Matrix
         vector<double> getVectorCol(int c);
         int setCol(vector<double> col, int c);
         bool is_sqr();
-        bool valid_mult(Matrix m);
         double abs();
         Matrix inv();
         double det();

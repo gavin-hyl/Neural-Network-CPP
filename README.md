@@ -1,3 +1,3 @@
 # C++ Neural Network
 
-work in progress!
+A take on creating a neural network in C++ from scratch.
