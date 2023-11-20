@@ -15,6 +15,7 @@ Matrix testFunction(vector<double> input, int outDim)
 {
     Matrix result = Matrix(outDim, 1);
     double expr = input[0]*input[0] + input[1];
+    // double expr = input[0] + input[1];
     if (expr > 2)
     {
         result.elements[0][0] = 1;
@@ -52,6 +53,11 @@ vector<DataPoint> generateDataSet(int inputDim, int outputDim, int size)
     return dataset;
 }
 
+void test0(void)
+{
+    
+}
+
 void test1(void)
 {
     const int IN_DIM = 2;
@@ -62,7 +68,7 @@ void test1(void)
     vector<DataPoint> trainSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
     vector<DataPoint> testSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
 
-    vector<int> layers = {IN_DIM, 10, OUT_DIM};
+    vector<int> layers = {IN_DIM, 3, OUT_DIM};
     NeuralNetwork network = NeuralNetwork(layers);
 
     double best = 0;
@@ -73,7 +79,7 @@ void test1(void)
         DataPoint test = trainSet[i];
         vector<DataPoint> trainset = {test};
 
-        network.gradient_descent(trainset, 1, 1e-1);
+        network.stochastic_descent(test, 1, 1e-1);
 
         double this_accuracy = network.set_accuracy(trainSet);
         if (this_accuracy > best)
@@ -93,6 +99,24 @@ void test1(void)
     }
 }
 
+void test2(void)
+{
+    const int IN_DIM = 2;
+    const int OUT_DIM = 2;
+    // tests to see if the model can classify points inside the unit circle correctly.
+    srand((int)time(0));
+    int nSamples = 1000;
+    vector<DataPoint> trainSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
+    vector<DataPoint> testSet = generateDataSet(IN_DIM, OUT_DIM, nSamples);
+
+    vector<int> layers = {IN_DIM, 3, OUT_DIM};
+    NeuralNetwork network = NeuralNetwork(layers);
+
+    double best = 0;
+    
+    NeuralNetwork best_network = network;
+    network.momentum_descent(trainSet, 1e-3, 1e-4, 0.95);
+}
 /**
  * @brief RANDOM FUNCTION GEN TESTING
  *
@@ -103,55 +127,55 @@ void test1(void)
 
 int main(int argc, char const *argv[])
 {
-    test1();
+    
     return 0;
 }
 
-// vector<DataPoint> toDataset(vector<vector<double>> inputs, vector<int> outputs, int outputDim) {
-//     vector<DataPoint> dataset;
-//     int size = outputs.size();
-//     for (int i = 0; i < size; i++) {
-//         Matrix inputMatrix = Matrix::toMatrix(inputs.at(i));
-//         Matrix outputMatrix = Matrix::toBasis(outputs.at(i), outputDim);
-//         DataPoint dp = DataPoint(inputMatrix, outputMatrix);
-//         dataset.push_back(dp);
-//     }
-//     return dataset;
-// }
+vector<DataPoint> toDataset(vector<vector<double>> inputs, vector<int> outputs, int outputDim) {
+    vector<DataPoint> dataset;
+    int size = outputs.size();
+    for (int i = 0; i < size; i++) {
+        Matrix inputMatrix = Matrix::toMatrix(inputs.at(i));
+        Matrix outputMatrix = Matrix::toBasis(outputs.at(i), outputDim);
+        DataPoint dp = DataPoint(inputMatrix, outputMatrix);
+        dataset.push_back(dp);
+    }
+    return dataset;
+}
 
-// #define IN_DIM 784
-// #define OUT_DIM 10
+#define IN_DIM 784
+#define OUT_DIM 10
 
-// int main(int argc, char const *argv[])
-// {
-//     csvFile csv = csvFile("data/mnist_test.csv", "r");
-//     vector<vector<double>> mnistInputs;
-//     vector<int> mnistOutputs;
-//     array<int, 2> dims = csv.getDimensions();
-//     int rows = dims[0];
-//     int cols = dims[1];
-//     for (int i = 0; i < rows; i++) {
-//         vector<double> mnistInput;
-//         vector<double> row = csv.getDoubleRow(i);
-//         for (int j = 1; j < cols; j++) {
-//             mnistInput.push_back(row.at(j));
-//         }
-//         mnistInputs.push_back(mnistInput);
-//         mnistOutputs.push_back(row.at(0));
-//     }
-//     vector<DataPoint> dataset = toDataset(mnistInputs, mnistOutputs, OUT_DIM);
+int main(int argc, char const *argv[])
+{
+    csvFile csv = csvFile("data/mnist_test.csv", "r");
+    vector<vector<double>> mnistInputs;
+    vector<int> mnistOutputs;
+    array<int, 2> dims = csv.getDimensions();
+    int rows = dims[0];
+    int cols = dims[1];
+    for (int i = 0; i < rows; i++) {
+        vector<double> mnistInput;
+        vector<double> row = csv.getDoubleRow(i);
+        for (int j = 1; j < cols; j++) {
+            mnistInput.push_back(row.at(j));
+        }
+        mnistInputs.push_back(mnistInput);
+        mnistOutputs.push_back(row.at(0));
+    }
+    vector<DataPoint> dataset = toDataset(mnistInputs, mnistOutputs, OUT_DIM);
 
-//     vector<int> layers = {IN_DIM, OUT_DIM};
-//     NeuralNetwork network = NeuralNetwork(layers);
-//     std::cout << std::setprecision (6) << "Initial Accuracy = " << network.set_accuracy(dataset) << std::endl;
-//     for (int i = 0; i < 500; i++) {
-//         network.batch_descent(dataset, 1E-6, 5E-5, 100);
-//         std::cout << "train set accuracy = " << network.set_accuracy(dataset) << std::endl;
-//         printf("Weights:\n");
-//         network.weights[0].print();
-//         printf("Biases\n");
-//         network.biases[0].print();
-//     }
+    vector<int> layers = {IN_DIM, OUT_DIM};
+    NeuralNetwork network = NeuralNetwork(layers);
+    std::cout << std::setprecision (6) << "Initial Accuracy = " << network.set_accuracy(dataset) << std::endl;
+    for (int i = 0; i < 500; i++) {
+        network.batch_descent(dataset, 1E-6, 5E-5, 100);
+        std::cout << "train set accuracy = " << network.set_accuracy(dataset) << std::endl;
+        printf("Weights:\n");
+        network.weights[0].print();
+        printf("Biases\n");
+        network.biases[0].print();
+    }
 
-//     return 0;
-// }
+    return 0;
+}

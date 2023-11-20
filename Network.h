@@ -12,12 +12,6 @@ using std::vector;
 
 class NeuralNetwork
 {
-private:
-    Matrix inner_activation(Matrix M);
-    Matrix inner_activation_P(Matrix M);
-    Matrix output_activation(Matrix M);
-    Matrix output_activation_P(Matrix M);
-
 public:
     vector<int> topology;
     vector<Matrix> weights;              // all weights between layers, n-1 in total

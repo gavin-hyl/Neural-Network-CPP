@@ -43,7 +43,7 @@ Matrix NeuralNetwork::feed_forward(const Matrix &input, bool getMax)
     {
         z = weights[i].T() * a + biases[i];
         layer_z.at(i) = z;
-        a = (i == n_transitions - 1) ? softmax(z) : sigma(z);
+        a = (i == n_transitions - 1) ? sigma(z) : sigma(z);
         layer_a.at(i) = a;
     }
 
@@ -144,7 +144,40 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
 
 void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
 {
-    throw std::logic_error("Not implemented");
+    back_propagate(dataset.at(0));
+    vector<Matrix> prev_w_grad = w_grad;
+    vector<Matrix> prev_b_grad = b_grad;
+
+    double best = 0;    // DEBUG
+
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        back_propagate(dataset.at(i));
+        int n_weights = weights.size();
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            prev_w_grad.at(layer) = prev_w_grad[layer] * gamma + w_grad[layer] * dw;
+            prev_b_grad.at(layer) = prev_b_grad[layer] * gamma + b_grad[layer] * db;
+            weights.at(layer) = weights[layer] - (prev_w_grad[layer]);
+            biases.at(layer) = biases[layer] - (prev_b_grad[layer]);
+            w_grad.at(layer).clear();
+            b_grad.at(layer).clear();
+        }
+        // DEBUG
+        double this_accuracy = set_accuracy(dataset);
+        if (this_accuracy > best)
+        {
+            best = this_accuracy;
+        }
+        if (i % 50 == 0)
+        {
+            std::cout << "Accuracy at point " << i << " = " << this_accuracy << "\n";
+            std::cout << "Best accuracy so far = " << best << "\n";
+            std::cout << "===Parameters (W, B)===\n-----\n";
+            weights[0].print();
+            biases[0].print();
+        }
+    }
 }
 
 void NeuralNetwork::nag_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
