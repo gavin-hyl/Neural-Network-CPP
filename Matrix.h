@@ -20,7 +20,7 @@ class Matrix
         Matrix operator + (const Matrix& m) const;
         Matrix operator - (const Matrix& m) const;
         Matrix operator * (const Matrix& m) const;
-        Matrix schur(const Matrix& M);
+        Matrix schur(const Matrix& M) const;
         Matrix operator * (const double& c) const;
         Matrix operator ^ (int pow);
         bool operator == (Matrix m);

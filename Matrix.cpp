@@ -40,12 +40,13 @@ Matrix::Matrix(int r, int c, int type, double (*gen)(int, int))
     else if (type == RANDOM)
     {
         srand((int)time(0));
+        const double RANGE = 0.5;
         while (r-- > 0)
         {
             vector<double> row(c);
             for (double &e : row)
             {
-                e = (1.0 * rand() / RAND_MAX) - 0.5;
+                e = (RANGE * rand() / RAND_MAX) - (RANGE/2);
             }
             elements.push_back(row);
         }
@@ -107,7 +108,7 @@ Matrix Matrix::operator*(const Matrix &m) const
 {
     if (this->cols != m.rows)
     {
-        std::cerr << "error";
+        std::cerr << "[ERROR] Matrix multiplication: size";
         exit(1);
     }
     int c = m.cols;
@@ -323,14 +324,19 @@ Matrix Matrix::dup()
     return duplicate;
 }
 
-Matrix Matrix::schur(const Matrix &M)
+Matrix Matrix::schur(const Matrix &M) const
 {
+    if (rows != M.rows || cols != M.cols)
+    {
+        std::cerr << "[ERROR] Schur product: size\n";
+        exit(EXIT_FAILURE);
+    }
     Matrix result = Matrix(rows, cols);
     for (int i = 0; i < rows; i++)
     {
         for (int j = 0; j < cols; j++)
         {
-            result.elements[i][j] = this->elements[i][j] * M.elements[i][j];
+            result.elements[i][j] = elements[i][j] * M.elements[i][j];
         }
     }
     return result;

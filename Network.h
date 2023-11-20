@@ -19,14 +19,14 @@ private:
     Matrix output_activation_P(Matrix M);
 
 public:
+    vector<int> topology;
     vector<Matrix> weights;              // all weights between layers, n-1 in total
     vector<Matrix> biases;               // all biases between layers, n in total
-    vector<Matrix> w_gradients; // intermediate variable, used to pass the results from back propagation to gradient descent
-    vector<Matrix> b_gradients;   // intermediate variable, used to pass the results from back propagation to gradient descent
-    vector<Matrix> layer_values;         // includes values of all layers, including the input and output, n in total
-    int num_layers;                      // total number of layers
-    char inner_activation_type;
-    char output_activation_type;
+    vector<Matrix> w_grad;
+    vector<Matrix> b_grad;
+    vector<Matrix> layer_a;
+    vector<Matrix> layer_z;
+    int n_layers;                      // total number of layers
 
     /**
      * @brief
@@ -46,7 +46,7 @@ public:
      * @param expected
      * @return Matrix
      */
-    Matrix gradient_output_cost(const Matrix &output, const Matrix &expected) const;
+    Matrix output_cost_p(const Matrix &output, const Matrix &expected) const;
 
     /**
      * @brief Construct a new Neural Network object
@@ -63,7 +63,7 @@ public:
      * @param record_layer_values if true, records the layer values internally
      * @return (Matrix) the output
      */
-    Matrix feed_forward(const Matrix &input, bool get_max = false, bool record_layer_values = false);
+    Matrix feed_forward(const Matrix &input, bool get_max = false);
 
     /**
      * @brief Calculate the gradient of the cost function at one data point, stores result in gradient Weight/Bias Cost
@@ -74,24 +74,11 @@ public:
 
     void update_parameters(double d_weight, double d_bias);
 
-    /**
-     * @brief Vanilla gradient descent algorithm, using the gradient calculated by back_propagate
-     *
-     * @param learnStep step size
-     */
+    // DESCENT ALGORITHMS AND OPTIMIZERS
+    void gradient_descent(vector<DataPoint> dataset, double, double);
     void batch_descent(vector<DataPoint> dataset, double, double, double);
     void stochastic_descent(vector<DataPoint> dataset, double, double);
     void stochastic_descent(DataPoint point, double, double);
-
-    /**
-     * @brief 
-     * 
-     * @param dataset 
-     * @param db bias learning rate
-     * @param dw weight learning rate
-     * @param batch_size 
-     * @param gamma momentum learning hyperparameter
-     */
     void momentum_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
     void nag_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
     void adagrad_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
@@ -104,5 +91,6 @@ public:
      * @param dataset the testing set
      * @return (double) network accuracy
      */
-    double test_network(vector<DataPoint> dataset);
+    double set_accuracy(vector<DataPoint> dataset);
+    double set_cost(vector<DataPoint> dataset);
 };
