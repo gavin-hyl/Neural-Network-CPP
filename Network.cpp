@@ -119,22 +119,25 @@ void NeuralNetwork::stochastic_descent(DataPoint point, double dw = DEFAULT_LEAR
     update_parameters(dw, db);
 }
 
-void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP, double batch_size = 0)
+void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP, int batch_size = 0)
 {
     double data_size = dataset.size();
-    batch_size = (batch_size == 0 || batch_size > data_size) ? data_size : batch_size;
-    double norm_d_weight = dw / batch_size;
-    double norm_d_bias = db / batch_size;
-    // std::random_shuffle(dataset.begin(), dataset.end());
-    
+    if (batch_size <= 0 || batch_size >= data_size)
+    {
+        gradient_descent(dataset, dw, db);
+        return;
+    }
+   
     for (int batch_begin = 0; batch_begin < data_size; batch_begin += batch_size)
     {
-        int this_batch_size = std::min(batch_size, data_size - batch_begin);
+        int this_batch_size = std::min(double(batch_size), data_size - batch_begin);
+        double norm_dw = dw / this_batch_size;
+        double norm_db = db / this_batch_size;
         for (int i = 0; i < this_batch_size; i++)
         {
-            back_propagate(dataset.at(i + batch_begin));
+            back_propagate(dataset[i + batch_begin]);
         }
-        update_parameters(norm_d_weight, norm_d_bias);
+        update_parameters(norm_dw, norm_db);
     }
 }
 

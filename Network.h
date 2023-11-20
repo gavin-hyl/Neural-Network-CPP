@@ -76,7 +76,7 @@ public:
 
     // DESCENT ALGORITHMS AND OPTIMIZERS
     void gradient_descent(vector<DataPoint> dataset, double, double);
-    void batch_descent(vector<DataPoint> dataset, double, double, double);
+    void batch_descent(vector<DataPoint> dataset, double, double, int);
     void stochastic_descent(vector<DataPoint> dataset, double, double);
     void stochastic_descent(DataPoint point, double, double);
     void momentum_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
