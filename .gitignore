@@ -1,7 +1,10 @@
+Data/
+Eigen/
 .vscode/
-NetworkTest.cpp
 *.exe
 Read.cpp
 Read.h
+Matrix.cpp
+Matrix.h
 MatrixTest.cpp
-Data/
+NetworkTest.cpp

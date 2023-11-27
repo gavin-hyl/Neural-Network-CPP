@@ -1,39 +1,37 @@
 #include "Network.h"
 
-using std::vector;
-
 // constructor
-NeuralNetwork::NeuralNetwork(vector<int> &topology)
+NeuralNetwork::NeuralNetwork(const vector<int> &topology)
 {
     this->topology = topology;
     this->n_layers = topology.size();
     int this_size, next_size;
     for (int i = 1; i < n_layers; i++)
     {   // biases are not added for the input layer but added for the output layer
-        biases.push_back(Matrix(topology[i], 1));
-        b_grad.push_back(Matrix(topology[i], 1));
-        layer_a.push_back(Matrix(topology[i], 1));
-        layer_z.push_back(Matrix(topology[i], 1));
+        biases.push_back(MatrixXd::Random(topology[i], 1));
+        b_grad.push_back(MatrixXd::Zero(topology[i], 1));
+        layer_a.push_back(MatrixXd::Zero(topology[i], 1));
+        layer_z.push_back(MatrixXd::Zero(topology[i], 1));
     }
 
     for (int i = 0; i < n_layers - 1; i++)
     {
-        weights.push_back(Matrix(topology[i], topology[i+1], RANDOM));
-        w_grad.push_back(Matrix(topology[i], topology[i+1]));
+        weights.push_back(MatrixXd::Random(topology[i], topology[i+1]));
+        w_grad.push_back(MatrixXd::Zero(topology[i], topology[i+1]));
     }
 }
 
-Matrix NeuralNetwork::output_cost_p(const Matrix &output, const Matrix &expected) const
+VectorXd NeuralNetwork::output_cost_p(const VectorXd &output, const VectorXd &expected) const
 {
     return (output - expected) * 2;
 }
 
-double NeuralNetwork::cost(Matrix const &output, Matrix &expected)
+double NeuralNetwork::cost(VectorXd const &output, VectorXd &expected)
 {
     return (output - expected).abs();
 }
 
-Matrix NeuralNetwork::feed_forward(const Matrix &input, bool getMax)
+VectorXd NeuralNetwork::feed_forward(const VectorXd &input, bool getMax)
 {
     Matrix z;
     Matrix a = input;
@@ -64,7 +62,7 @@ Matrix NeuralNetwork::feed_forward(const Matrix &input, bool getMax)
 
 void NeuralNetwork::back_propagate(DataPoint point)
 {
-    feed_forward(point.data);
+    feed_forward(point.input);
     Matrix delta;
     int max_w_idx = n_layers - 2;
 
@@ -89,7 +87,7 @@ void NeuralNetwork::update_parameters(double dw, double db)
     int n_weights = weights.size();
     for (int layer = 0; layer < n_weights; layer++)
     {
-        weights.at(layer) = weights[layer] - (w_grad[layer] * dw);
+        weights.at(layer) = weights.at(layer) - (w_grad.at(layer) * dw);
         biases.at(layer) = biases[layer] - (b_grad[layer] * db);
         w_grad.at(layer).clear();
         b_grad.at(layer).clear();
@@ -128,6 +126,8 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
         return;
     }
    
+    double best = 0;    // DEBUG
+    
     for (int batch_begin = 0; batch_begin < data_size; batch_begin += batch_size)
     {
         int this_batch_size = std::min(double(batch_size), data_size - batch_begin);
@@ -135,9 +135,26 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
         double norm_db = db / this_batch_size;
         for (int i = 0; i < this_batch_size; i++)
         {
+            std::cout << ".";
             back_propagate(dataset[i + batch_begin]);
         }
+        std::cout << "\n";
+        // w_grad[0].print();
         update_parameters(norm_dw, norm_db);
+                // DEBUG
+        double this_accuracy = set_accuracy(dataset);
+        if (this_accuracy > best)
+        {
+            best = this_accuracy;
+        }
+        if (batch_begin % 100 == 0)
+        {
+            std::cout << "Accuracy at point " << batch_begin << " = " << this_accuracy << "\n";
+            std::cout << "Best accuracy so far = " << best << "\n";
+            std::cout << "===Parameters (B)===\n-----\n";
+            // weights[0].print();
+            // biases[0].print();
+        }
     }
 }
 
@@ -145,8 +162,8 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
 void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
 {
     back_propagate(dataset.at(0));
-    vector<Matrix> prev_w_grad = w_grad;
-    vector<Matrix> prev_b_grad = b_grad;
+    vector<MatrixXd> prev_w_grad = w_grad;
+    vector<MatrixXd> prev_b_grad = b_grad;
 
     double best = 0;    // DEBUG
 
@@ -169,13 +186,13 @@ void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double dw, doubl
         {
             best = this_accuracy;
         }
-        if (i % 50 == 0)
+        if (i % 100 == 0)
         {
             std::cout << "Accuracy at point " << i << " = " << this_accuracy << "\n";
             std::cout << "Best accuracy so far = " << best << "\n";
-            std::cout << "===Parameters (W, B)===\n-----\n";
-            weights[0].print();
-            biases[0].print();
+            // std::cout << "===Parameters (B)===\n-----\n";
+            // weights[0].print();
+            // biases[0].print();
         }
     }
 }
@@ -205,7 +222,7 @@ double NeuralNetwork::set_accuracy(vector<DataPoint> dataset)
     double correct = 0;
     for (DataPoint dp : dataset)
     {
-        correct += (feed_forward(dp.data, true) == dp.expected);
+        correct += (feed_forward(dp.input, true) == dp.label);
     }
     return correct / dataset.size();
 }
@@ -215,7 +232,7 @@ double NeuralNetwork::set_cost(vector<DataPoint> dataset)
     double sum = 0;
     for (DataPoint dp : dataset)
     {
-        sum += cost(feed_forward(dp.data), dp.expected);
+        sum += cost(feed_forward(dp.input), dp.label);
     }
     return sum;
 }

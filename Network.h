@@ -3,23 +3,24 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include "Eigen/Dense"
 #include "Functions.h"
 #include "Data.h"
 
 #define DEFAULT_LEARN_STEP 1e-3
 
-using std::vector;
+using std::vector, Eigen::MatrixXd, Eigen::VectorXd;
 
 class NeuralNetwork
 {
 public:
     vector<int> topology;
-    vector<Matrix> weights;              // all weights between layers, n-1 in total
-    vector<Matrix> biases;               // all biases between layers, n in total
-    vector<Matrix> w_grad;
-    vector<Matrix> b_grad;
-    vector<Matrix> layer_a;
-    vector<Matrix> layer_z;
+    vector<MatrixXd> weights;              // all weights between layers, n-1 in total
+    vector<MatrixXd> biases;               // all biases between layers, n in total
+    vector<MatrixXd> w_grad;
+    vector<MatrixXd> b_grad;
+    vector<VectorXd> layer_a;
+    vector<VectorXd> layer_z;
     int n_layers;                      // total number of layers
 
     /**
@@ -29,25 +30,18 @@ public:
      * @param expected
      * @return double
      */
-    double cost(Matrix const &output, Matrix &expected);
+    double cost(VectorXd const &output, VectorXd &expected);
 
     double cost(vector<DataPoint> dataset);
 
-    /**
-     * @brief
-     *
-     * @param output
-     * @param expected
-     * @return Matrix
-     */
-    Matrix output_cost_p(const Matrix &output, const Matrix &expected) const;
+    VectorXd output_cost_p(const VectorXd &output, const VectorXd &expected) const;
 
     /**
      * @brief Construct a new Neural Network object
      *
      * @param layerSizes sizes of all the layers, including input and output
      */
-    NeuralNetwork(vector<int> &layerSizes);
+    NeuralNetwork(const vector<int> &layerSizes);
 
     /**
      * @brief Calculate the output of the network given a single input
@@ -57,7 +51,7 @@ public:
      * @param record_layer_values if true, records the layer values internally
      * @return (Matrix) the output
      */
-    Matrix feed_forward(const Matrix &input, bool get_max = false);
+    VectorXd feed_forward(const VectorXd &input, bool get_max = false);
 
     /**
      * @brief Calculate the gradient of the cost function at one data point, stores result in gradient Weight/Bias Cost
@@ -73,11 +67,11 @@ public:
     void batch_descent(vector<DataPoint> dataset, double, double, int);
     void stochastic_descent(vector<DataPoint> dataset, double, double);
     void stochastic_descent(DataPoint point, double, double);
-    void momentum_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
-    void nag_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
-    void adagrad_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
-    void adadelta_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
-    void adam_descent(vector<DataPoint> dataset, double db, double dw, double gamma);
+    void momentum_descent(vector<DataPoint> dataset, double, double, double gamma);
+    void nag_descent(vector<DataPoint> dataset, double, double, double gamma);
+    void adagrad_descent(vector<DataPoint> dataset, double, double, double gamma);
+    void adadelta_descent(vector<DataPoint> dataset, double, double, double gamma);
+    void adam_descent(vector<DataPoint> dataset, double, double, double gamma);
 
     /**
      * @brief Test network accuracy based on a testing set
