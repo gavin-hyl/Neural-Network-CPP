@@ -26,58 +26,52 @@ VectorXd NeuralNetwork::output_cost_p(const VectorXd &output, const VectorXd &ex
     return (output - expected) * 2;
 }
 
-double NeuralNetwork::cost(VectorXd const &output, VectorXd &expected)
+double NeuralNetwork::cost(const VectorXd &output, const VectorXd &expected) const
 {
-    return (output - expected).abs();
+    return (output - expected).squaredNorm();
 }
 
-VectorXd NeuralNetwork::feed_forward(const VectorXd &input, bool getMax)
+VectorXd NeuralNetwork::feed_forward(const VectorXd &input, const bool getMax)
 {
-    Matrix z;
-    Matrix a = input;
+    VectorXd z;
+    VectorXd a = input;
 
     int n_transitions = weights.size();     // which is n_layers - 1
     for (int i = 0; i < n_transitions; i++)
     {
-        z = weights[i].T() * a + biases[i];
+        z = weights[i].transpose() * a + biases[i];
         layer_z.at(i) = z;
-        a = (i == n_transitions - 1) ? sigma(z) : sigma(z);
+        a = (i == n_transitions - 1) ? broadcast(z, sigma) :  broadcast(z, sigma);
         layer_a.at(i) = a;
     }
 
     if (getMax)
     {
-        Matrix a_cpy = a;
-        vector<double> outArray = a_cpy.getVectorCol(0);
-        int maxIdx = std::max_element(outArray.begin(), outArray.end()) - outArray.begin();
-        a_cpy.clear();
-        a_cpy.elements[maxIdx][0] = 1;
-        return a_cpy;
+        Eigen::Index max_row, max_col;
+        a.maxCoeff(&max_row, &max_col);
+        a.setZero();
+        a(max_row) = 1;
     }
-    else
-    {
-        return a;
-    }
+    return a;
 }
 
-void NeuralNetwork::back_propagate(DataPoint point)
+void NeuralNetwork::back_propagate(const DataPoint &point)
 {
     feed_forward(point.input);
-    Matrix delta;
+    VectorXd delta;
     int max_w_idx = n_layers - 2;
 
     for (int layer = max_w_idx; layer >= 0; layer--)
     {
         if (layer == max_w_idx)
         {
-            delta = sigma_P(layer_z.at(layer)).schur(output_cost_p(layer_a.at(layer), point.expected));
-            // delta = (layer_a.at(layer) - point.expected).schur(sigma_P(layer_z.at(layer)));
+            delta = broadcast(layer_z[layer], sigma_p).cwiseProduct(output_cost_p(layer_a.at(layer), point.label));
         }
         else
         {
-            delta = sigma_P(layer_z.at(layer)).schur(weights.at(layer+1) * delta);
+            delta = broadcast(layer_z[layer], sigma_p).cwiseProduct(weights[layer+1] * delta);
         }
-        w_grad.at(layer) = w_grad[layer] + ((layer != 0) ? layer_a[layer-1] * delta.T() : point.data * delta.T());
+        w_grad.at(layer) = w_grad[layer] + ((layer != 0) ? layer_a[layer-1] * delta.transpose() : point.input * delta.transpose());
         b_grad.at(layer) = b_grad[layer] + delta;
     }
 }
@@ -87,10 +81,10 @@ void NeuralNetwork::update_parameters(double dw, double db)
     int n_weights = weights.size();
     for (int layer = 0; layer < n_weights; layer++)
     {
-        weights.at(layer) = weights.at(layer) - (w_grad.at(layer) * dw);
-        biases.at(layer) = biases[layer] - (b_grad[layer] * db);
-        w_grad.at(layer).clear();
-        b_grad.at(layer).clear();
+        weights.at(layer) -= w_grad[layer] * dw;
+        biases.at(layer) -= b_grad[layer] * db;
+        w_grad.at(layer).setZero();
+        b_grad.at(layer).setZero();
     } 
 }
 
@@ -125,9 +119,7 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
         gradient_descent(dataset, dw, db);
         return;
     }
-   
-    double best = 0;    // DEBUG
-    
+
     for (int batch_begin = 0; batch_begin < data_size; batch_begin += batch_size)
     {
         int this_batch_size = std::min(double(batch_size), data_size - batch_begin);
@@ -135,26 +127,9 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
         double norm_db = db / this_batch_size;
         for (int i = 0; i < this_batch_size; i++)
         {
-            std::cout << ".";
             back_propagate(dataset[i + batch_begin]);
         }
-        std::cout << "\n";
-        // w_grad[0].print();
         update_parameters(norm_dw, norm_db);
-                // DEBUG
-        double this_accuracy = set_accuracy(dataset);
-        if (this_accuracy > best)
-        {
-            best = this_accuracy;
-        }
-        if (batch_begin % 100 == 0)
-        {
-            std::cout << "Accuracy at point " << batch_begin << " = " << this_accuracy << "\n";
-            std::cout << "Best accuracy so far = " << best << "\n";
-            std::cout << "===Parameters (B)===\n-----\n";
-            // weights[0].print();
-            // biases[0].print();
-        }
     }
 }
 
@@ -177,8 +152,8 @@ void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double dw, doubl
             prev_b_grad.at(layer) = prev_b_grad[layer] * gamma + b_grad[layer] * db;
             weights.at(layer) = weights[layer] - (prev_w_grad[layer]);
             biases.at(layer) = biases[layer] - (prev_b_grad[layer]);
-            w_grad.at(layer).clear();
-            b_grad.at(layer).clear();
+            w_grad.at(layer).setZero();
+            b_grad.at(layer).setZero();
         }
         // DEBUG
         double this_accuracy = set_accuracy(dataset);
@@ -217,7 +192,7 @@ void NeuralNetwork::adam_descent(vector<DataPoint> dataset, double dw, double db
     throw std::logic_error("Not implemented");
 }
 
-double NeuralNetwork::set_accuracy(vector<DataPoint> dataset)
+double NeuralNetwork::set_accuracy(const vector<DataPoint> &dataset)
 {
     double correct = 0;
     for (DataPoint dp : dataset)
@@ -227,7 +202,7 @@ double NeuralNetwork::set_accuracy(vector<DataPoint> dataset)
     return correct / dataset.size();
 }
 
-double NeuralNetwork::set_cost(vector<DataPoint> dataset)
+double NeuralNetwork::set_cost(const vector<DataPoint> &dataset)
 {
     double sum = 0;
     for (DataPoint dp : dataset)
@@ -235,4 +210,10 @@ double NeuralNetwork::set_cost(vector<DataPoint> dataset)
         sum += cost(feed_forward(dp.input), dp.label);
     }
     return sum;
+}
+
+void NeuralNetwork::evaluate(const vector<DataPoint> &dataset)
+{
+    std::cout << "Dataset cost = " << set_cost(dataset) << "\n";
+    std::cout << "Prediction accuracy = " << set_accuracy(dataset) << "\n";
 }

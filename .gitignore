@@ -1,10 +1,9 @@
 Data/
 Eigen/
 .vscode/
+Unused/
 *.exe
 Read.cpp
 Read.h
-Matrix.cpp
-Matrix.h
 MatrixTest.cpp
 NetworkTest.cpp

@@ -9,7 +9,9 @@
 
 #define DEFAULT_LEARN_STEP 1e-3
 
-using std::vector, Eigen::MatrixXd, Eigen::VectorXd;
+using std::vector;
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
 
 class NeuralNetwork
 {
@@ -30,9 +32,9 @@ public:
      * @param expected
      * @return double
      */
-    double cost(VectorXd const &output, VectorXd &expected);
+    double cost(const VectorXd &output, const VectorXd &expected) const;
 
-    double cost(vector<DataPoint> dataset);
+    double cost(const vector<DataPoint> &dataset) const;
 
     VectorXd output_cost_p(const VectorXd &output, const VectorXd &expected) const;
 
@@ -51,16 +53,16 @@ public:
      * @param record_layer_values if true, records the layer values internally
      * @return (Matrix) the output
      */
-    VectorXd feed_forward(const VectorXd &input, bool get_max = false);
+    VectorXd feed_forward(const VectorXd &input, const bool get_max = false);
 
     /**
      * @brief Calculate the gradient of the cost function at one data point, stores result in gradient Weight/Bias Cost
      *
      * @param point the data point
      */
-    void back_propagate(DataPoint point);
+    void back_propagate(const DataPoint &point);
 
-    void update_parameters(double d_weight, double d_bias);
+    void update_parameters(const double d_weight, const double d_bias);
 
     // DESCENT ALGORITHMS AND OPTIMIZERS
     void gradient_descent(vector<DataPoint> dataset, double, double);
@@ -73,12 +75,8 @@ public:
     void adadelta_descent(vector<DataPoint> dataset, double, double, double gamma);
     void adam_descent(vector<DataPoint> dataset, double, double, double gamma);
 
-    /**
-     * @brief Test network accuracy based on a testing set
-     *
-     * @param dataset the testing set
-     * @return (double) network accuracy
-     */
-    double set_accuracy(vector<DataPoint> dataset);
-    double set_cost(vector<DataPoint> dataset);
+    double set_accuracy(const vector<DataPoint> &dataset);
+    double set_cost(const vector<DataPoint> &dataset);
+
+    void evaluate(const vector<DataPoint> &dataset);
 };
