@@ -15,7 +15,7 @@ using Eigen::VectorXd;
 using std::vector;
 
 /*
-Point Classification, inspiration from Sebastian League's video on Neural Networks.
+Point Classification, inspired by Sebastian League's video on Neural Networks.
 */
 
 VectorXd classification(VectorXd input)
