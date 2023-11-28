@@ -1,5 +1,5 @@
+#include "Tests.h"
 #include "Network.h"
-#include "Read.h"
 #include <cmath>
 #include <vector>
 #include <random>
@@ -16,16 +16,17 @@ using std::vector;
 
 /*
 Point Classification, inspired by Sebastian League's video on Neural Networks.
+This test demonstrates the ability of the mini-batch algorithm to jump out of local minima.
 */
 
-VectorXd classification(VectorXd input)
+static VectorXd classification(VectorXd input)
 {
     VectorXd label = VectorXd::Zero(2);
     label((input.norm() > 0.5)) = 1;
     return label;
 }
 
-vector<DataPoint> generate_set(const int samples, const int in_dim)
+static vector<DataPoint> generate_set(const int samples, const int in_dim)
 {
     vector<DataPoint> set;
     for (int i = 0; i < samples; i++)
@@ -37,7 +38,7 @@ vector<DataPoint> generate_set(const int samples, const int in_dim)
     return set;
 }
 
-void record_values(std::string path, const vector<double> &data)
+static void record_values(std::string path, const vector<double> &data)
 {
     std::ofstream file(path);
     file << "header\n";
@@ -48,7 +49,7 @@ void record_values(std::string path, const vector<double> &data)
     file.close();
 }
 
-int main()
+void test_circle()
 {
     srand(time(0));
     int in_dim = 2;
@@ -66,7 +67,6 @@ int main()
         accuracies.push_back(nn.set_accuracy(test));
         costs.push_back(nn.set_cost(test));
     }
-    record_values("accuracy", accuracies);
-    record_values("cost", costs);
-    return 0;
+    record_values("Visualization/accuracy", accuracies);
+    record_values("Visualization/cost", costs);
 }

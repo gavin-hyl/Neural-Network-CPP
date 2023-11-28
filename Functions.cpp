@@ -34,9 +34,9 @@ void broadcast_inplace(MatrixXd &M, double (*f)(double))
 
 MatrixXd softmax(const MatrixXd &M)
 {
-    double sum = 0;
     MatrixXd result(M.rows(), M.cols());
     broadcast(result, exp);
+    double sum = result.sum();
     result /= sum;
     return result;
 }
