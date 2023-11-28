@@ -3,7 +3,7 @@
 using std::vector;
 using std::string;
 
-csvFile::csvFile(string path, string flags) {
+CSV::CSV(string path) {
     file.open(path);
     string line;
     string token;
@@ -29,11 +29,11 @@ csvFile::csvFile(string path, string flags) {
     }
 }
 
-vector<string> csvFile::getStringRow(int row) {
+vector<string> CSV::getStringRow(int row) {
     return data.at(row);
 }
 
-vector<double> csvFile::getDoubleRow(int row) {
+vector<double> CSV::getDoubleRow(int row) {
     vector<double> doubleRow;
     vector<string> strRow = data.at(row);
     int size = strRow.size();
@@ -43,11 +43,11 @@ vector<double> csvFile::getDoubleRow(int row) {
     return doubleRow;
 }
 
-array<int, 2> csvFile::getDimensions() {
+array<int, 2> CSV::getDimensions() {
     return {int(data.size()), int(data[0].size())};
 }
 
 
-vector<string> csvFile::getColumnHeaders() {
+vector<string> CSV::getColumnHeaders() {
     return headers;
 }

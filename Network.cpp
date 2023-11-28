@@ -41,7 +41,7 @@ VectorXd NeuralNetwork::feed_forward(const VectorXd &input, const bool getMax)
     {
         z = weights[i].transpose() * a + biases[i];
         layer_z.at(i) = z;
-        a = (i == n_transitions - 1) ? broadcast(z, sigma) : broadcast(z, sigma);
+        a = broadcast(z, sigma);
         layer_a.at(i) = a;
     }
 

@@ -12,7 +12,7 @@ using std::string;
 using std::vector;
 using std::array;
 
-class csvFile
+class CSV
 {
 private:
     std::fstream file;
@@ -20,7 +20,7 @@ private:
     vector<vector<string>> data;
 
 public:
-    csvFile(string path, string flags);
+    CSV(string path);
     vector<string> getColumnHeaders();
     vector<string> getStringRow(int row);
     vector<double> getDoubleRow(int row);

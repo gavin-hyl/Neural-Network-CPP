@@ -41,7 +41,7 @@ MatrixXd softmax(const MatrixXd &M)
     return result;
 }
 
-MatrixXd softmax_P(const MatrixXd &M)
+MatrixXd softmax_p(const MatrixXd &M)
 {
     MatrixXd result = softmax(M);
     broadcast_inplace(result, [] (double e) {return e * (1-e);});

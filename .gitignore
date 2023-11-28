@@ -1,5 +1,6 @@
 Data/
 Eigen/
+Visualization/
 .vscode/
 Unused/
 *.exe

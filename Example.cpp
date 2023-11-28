@@ -1,7 +1,7 @@
 #include "Tests.h"
 
-int main(int argc, char const *argv[])
+int main()
 {
-    test_circle();
+    test_line();
     return 0;
 }

@@ -20,8 +20,19 @@ Easiest test possible.
 
 static VectorXd classification(VectorXd input)
 {
-    VectorXd label = VectorXd::Zero(2);
-    label((input.sum() > 0)) = 1;
+    VectorXd label = VectorXd::Zero(3);
+    if (input.sum() > 1)
+    {
+        label(0) = 1;
+    }
+    else if (input.sum() < -1)
+    {
+        label(1) = 1;
+    }
+    else
+    {
+        label(2) = 1;
+    }
     return label;
 }
 
@@ -52,16 +63,17 @@ void test_line()
 {
     srand(time(0));
     int in_dim = 2;
-    NeuralNetwork nn = NeuralNetwork({in_dim, 2});
-    vector<DataPoint> train = generate_set(100, in_dim);
-    vector<DataPoint> test = generate_set(10, in_dim);
+    int out_dim = 3;
+    NeuralNetwork nn = NeuralNetwork({in_dim, 3, out_dim}); // the hidden layer was crucial - without it, the model could not improve past 80% accuracy.
+    vector<DataPoint> train = generate_set(1000, in_dim);
+    vector<DataPoint> test = generate_set(100, in_dim);
     vector<double> accuracies;
     vector<double> costs;
 
     nn.evaluate(test);
-    for (int i = 0; i < 300; i++)
+    for (int i = 0; i < 500; i++)
     {
-        nn.batch_descent(train, 1, 0, 10);
+        nn.batch_descent(train, 2, 0.1, 10);
         nn.evaluate(train);
         accuracies.push_back(nn.set_accuracy(test));
         costs.push_back(nn.set_cost(test));
