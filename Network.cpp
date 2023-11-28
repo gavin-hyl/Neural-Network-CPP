@@ -7,7 +7,7 @@ NeuralNetwork::NeuralNetwork(const vector<int> &topology)
     this->n_layers = topology.size();
     int this_size, next_size;
     for (int i = 1; i < n_layers; i++)
-    {   // biases are not added for the input layer but added for the output layer
+    { // biases are not added for the input layer but added for the output layer
         biases.push_back(MatrixXd::Random(topology[i], 1));
         b_grad.push_back(MatrixXd::Zero(topology[i], 1));
         layer_a.push_back(MatrixXd::Zero(topology[i], 1));
@@ -16,8 +16,8 @@ NeuralNetwork::NeuralNetwork(const vector<int> &topology)
 
     for (int i = 0; i < n_layers - 1; i++)
     {
-        weights.push_back(MatrixXd::Random(topology[i], topology[i+1]));
-        w_grad.push_back(MatrixXd::Zero(topology[i], topology[i+1]));
+        weights.push_back(MatrixXd::Random(topology[i], topology[i + 1]));
+        w_grad.push_back(MatrixXd::Zero(topology[i], topology[i + 1]));
     }
 }
 
@@ -36,12 +36,12 @@ VectorXd NeuralNetwork::feed_forward(const VectorXd &input, const bool getMax)
     VectorXd z;
     VectorXd a = input;
 
-    int n_transitions = weights.size();     // which is n_layers - 1
+    int n_transitions = weights.size(); // which is n_layers - 1
     for (int i = 0; i < n_transitions; i++)
     {
         z = weights[i].transpose() * a + biases[i];
         layer_z.at(i) = z;
-        a = (i == n_transitions - 1) ? broadcast(z, sigma) :  broadcast(z, sigma);
+        a = (i == n_transitions - 1) ? broadcast(z, sigma) : broadcast(z, sigma);
         layer_a.at(i) = a;
     }
 
@@ -69,9 +69,9 @@ void NeuralNetwork::back_propagate(const DataPoint &point)
         }
         else
         {
-            delta = broadcast(layer_z[layer], sigma_p).cwiseProduct(weights[layer+1] * delta);
+            delta = broadcast(layer_z[layer], sigma_p).cwiseProduct(weights[layer + 1] * delta);
         }
-        w_grad.at(layer) = w_grad[layer] + ((layer != 0) ? layer_a[layer-1] * delta.transpose() : point.input * delta.transpose());
+        w_grad.at(layer) = w_grad[layer] + ((layer != 0) ? layer_a[layer - 1] * delta.transpose() : point.input * delta.transpose());
         b_grad.at(layer) = b_grad[layer] + delta;
     }
 }
@@ -85,10 +85,10 @@ void NeuralNetwork::update_parameters(double dw, double db)
         biases.at(layer) -= b_grad[layer] * db;
         w_grad.at(layer).setZero();
         b_grad.at(layer).setZero();
-    } 
+    }
 }
 
-void NeuralNetwork::gradient_descent(vector<DataPoint> dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
+void NeuralNetwork::gradient_descent(const vector<DataPoint> &dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
 {
     for (int i = 0; i < dataset.size(); i++)
     {
@@ -97,7 +97,7 @@ void NeuralNetwork::gradient_descent(vector<DataPoint> dataset, double dw = DEFA
     update_parameters(dw, db);
 }
 
-void NeuralNetwork::stochastic_descent(vector<DataPoint> dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
+void NeuralNetwork::stochastic_descent(const vector<DataPoint> &dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
 {
     for (int i = 0; i < dataset.size(); i++)
     {
@@ -105,13 +105,13 @@ void NeuralNetwork::stochastic_descent(vector<DataPoint> dataset, double dw = DE
     }
 }
 
-void NeuralNetwork::stochastic_descent(DataPoint point, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
+void NeuralNetwork::stochastic_descent(const DataPoint &point, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP)
 {
     back_propagate(point);
     update_parameters(dw, db);
 }
 
-void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP, int batch_size = 0)
+void NeuralNetwork::batch_descent(const vector<DataPoint> &dataset, double dw = DEFAULT_LEARN_STEP, double db = DEFAULT_LEARN_STEP, int batch_size = 0)
 {
     double data_size = dataset.size();
     if (batch_size <= 0 || batch_size >= data_size)
@@ -133,61 +133,44 @@ void NeuralNetwork::batch_descent(vector<DataPoint> dataset, double dw = DEFAULT
     }
 }
 
-
-void NeuralNetwork::momentum_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
+void NeuralNetwork::momentum_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
     back_propagate(dataset.at(0));
     vector<MatrixXd> prev_w_grad = w_grad;
     vector<MatrixXd> prev_b_grad = b_grad;
-
-    double best = 0;    // DEBUG
+    int n_weights = weights.size();
 
     for (int i = 0; i < dataset.size(); i++)
     {
         back_propagate(dataset.at(i));
-        int n_weights = weights.size();
         for (int layer = 0; layer < n_weights; layer++)
         {
             prev_w_grad.at(layer) = prev_w_grad[layer] * gamma + w_grad[layer] * dw;
             prev_b_grad.at(layer) = prev_b_grad[layer] * gamma + b_grad[layer] * db;
-            weights.at(layer) = weights[layer] - (prev_w_grad[layer]);
-            biases.at(layer) = biases[layer] - (prev_b_grad[layer]);
+            weights.at(layer) -= (prev_w_grad[layer]);
+            biases.at(layer) -= (prev_b_grad[layer]);
             w_grad.at(layer).setZero();
             b_grad.at(layer).setZero();
-        }
-        // DEBUG
-        double this_accuracy = set_accuracy(dataset);
-        if (this_accuracy > best)
-        {
-            best = this_accuracy;
-        }
-        if (i % 100 == 0)
-        {
-            std::cout << "Accuracy at point " << i << " = " << this_accuracy << "\n";
-            std::cout << "Best accuracy so far = " << best << "\n";
-            // std::cout << "===Parameters (B)===\n-----\n";
-            // weights[0].print();
-            // biases[0].print();
         }
     }
 }
 
-void NeuralNetwork::nag_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
+void NeuralNetwork::nag_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
     throw std::logic_error("Not implemented");
 }
 
-void NeuralNetwork::adagrad_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
+void NeuralNetwork::adagrad_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
     throw std::logic_error("Not implemented");
 }
 
-void NeuralNetwork::adadelta_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
+void NeuralNetwork::adadelta_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
     throw std::logic_error("Not implemented");
 }
 
-void NeuralNetwork::adam_descent(vector<DataPoint> dataset, double dw, double db, double gamma)
+void NeuralNetwork::adam_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
     throw std::logic_error("Not implemented");
 }

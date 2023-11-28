@@ -65,15 +65,15 @@ public:
     void update_parameters(const double d_weight, const double d_bias);
 
     // DESCENT ALGORITHMS AND OPTIMIZERS
-    void gradient_descent(vector<DataPoint> dataset, double, double);
-    void batch_descent(vector<DataPoint> dataset, double, double, int);
-    void stochastic_descent(vector<DataPoint> dataset, double, double);
-    void stochastic_descent(DataPoint point, double, double);
-    void momentum_descent(vector<DataPoint> dataset, double, double, double gamma);
-    void nag_descent(vector<DataPoint> dataset, double, double, double gamma);
-    void adagrad_descent(vector<DataPoint> dataset, double, double, double gamma);
-    void adadelta_descent(vector<DataPoint> dataset, double, double, double gamma);
-    void adam_descent(vector<DataPoint> dataset, double, double, double gamma);
+    void gradient_descent(const vector<DataPoint> &dataset, double, double);
+    void batch_descent(const vector<DataPoint> &dataset, double, double, int);
+    void stochastic_descent(const vector<DataPoint> &dataset, double, double);
+    void stochastic_descent(const DataPoint &point, double, double);
+    void momentum_descent(const vector<DataPoint> &dataset, double, double, double);
+    void nag_descent(const vector<DataPoint> &dataset, double, double, double);
+    void adagrad_descent(const vector<DataPoint> &dataset, double, double, double);
+    void adadelta_descent(const vector<DataPoint> &dataset, double, double, double);
+    void adam_descent(const vector<DataPoint> &dataset, double, double, double);
 
     double set_accuracy(const vector<DataPoint> &dataset);
     double set_cost(const vector<DataPoint> &dataset);
