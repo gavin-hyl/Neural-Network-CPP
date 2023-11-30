@@ -2,6 +2,6 @@
 
 int main()
 {
-    test_line();
+    test_mnist();
     return 0;
 }

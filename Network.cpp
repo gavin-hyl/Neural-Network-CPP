@@ -147,10 +147,16 @@ void NeuralNetwork::momentum_descent(const vector<DataPoint> &dataset, double dw
         {
             prev_w_grad.at(layer) = prev_w_grad[layer] * gamma + w_grad[layer] * dw;
             prev_b_grad.at(layer) = prev_b_grad[layer] * gamma + b_grad[layer] * db;
-            weights.at(layer) -= (prev_w_grad[layer]);
-            biases.at(layer) -= (prev_b_grad[layer]);
+            weights.at(layer) -= prev_w_grad[layer];
+            biases.at(layer) -= prev_b_grad[layer];
             w_grad.at(layer).setZero();
             b_grad.at(layer).setZero();
+        }
+
+        if (i % (dataset.size()/5) == 0)
+        {
+            // std::cout << prev_w_grad.at(0) << "\n";
+            evaluate(dataset);
         }
     }
 }
@@ -197,6 +203,8 @@ double NeuralNetwork::set_cost(const vector<DataPoint> &dataset)
 
 void NeuralNetwork::evaluate(const vector<DataPoint> &dataset)
 {
+    std::cout << "=== Current Network Status ===\n";
+    std::cout << "Weight matrix magnitude = " << weights[0].norm() << "\n";
     std::cout << "Dataset cost = " << set_cost(dataset) << "\n";
     std::cout << "Prediction accuracy = " << set_accuracy(dataset) << "\n";
 }

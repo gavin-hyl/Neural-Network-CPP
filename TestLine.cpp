@@ -73,7 +73,7 @@ void test_line()
     nn.evaluate(test);
     for (int i = 0; i < 500; i++)
     {
-        nn.batch_descent(train, 2, 0.1, 10);
+        nn.momentum_descent(train, 0.1, 0.01, 0.5);
         nn.evaluate(train);
         accuracies.push_back(nn.set_accuracy(test));
         costs.push_back(nn.set_cost(test));

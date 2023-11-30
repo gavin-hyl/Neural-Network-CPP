@@ -62,7 +62,7 @@ void test_circle()
     nn.evaluate(test);
     for (int i = 0; i < 300; i++)
     {
-        nn.batch_descent(train, 3, 0, 30);
+        nn.momentum_descent(train, 0.1, 0.01, 0.5);
         nn.evaluate(train);
         accuracies.push_back(nn.set_accuracy(test));
         costs.push_back(nn.set_cost(test));
