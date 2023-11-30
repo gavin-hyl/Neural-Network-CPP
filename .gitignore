@@ -1,10 +1,13 @@
+.vscode/
 Data/
 Eigen/
 Visualization/
-.vscode/
 Unused/
 *.exe
 Read.cpp
 Read.h
-MatrixTest.cpp
-NetworkTest.cpp
+TestCircle.cpp
+TestLine.cpp
+TestMNIST.cpp
+Tests.cpp
+Tests.h
