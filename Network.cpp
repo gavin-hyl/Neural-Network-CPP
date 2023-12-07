@@ -8,10 +8,10 @@ NeuralNetwork::NeuralNetwork(const vector<int> &topology)
     int this_size, next_size;
     for (int i = 1; i < n_layers; i++)
     { // biases are not added for the input layer but added for the output layer
-        biases.push_back(MatrixXd::Random(topology[i], 1));
-        b_grad.push_back(MatrixXd::Zero(topology[i], 1));
-        layer_a.push_back(MatrixXd::Zero(topology[i], 1));
-        layer_z.push_back(MatrixXd::Zero(topology[i], 1));
+        biases.push_back(VectorXd::Random(topology[i]));
+        b_grad.push_back(VectorXd::Zero(topology[i]));
+        layer_a.push_back(VectorXd::Zero(topology[i]));
+        layer_z.push_back(VectorXd::Zero(topology[i]));
     }
 
     for (int i = 0; i < n_layers - 1; i++)
