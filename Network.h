@@ -71,9 +71,9 @@ public:
     void stochastic_descent(const DataPoint &point, double, double);
     void momentum_descent(const vector<DataPoint> &dataset, double, double, double);
     void nag_descent(const vector<DataPoint> &dataset, double, double, double);
-    void adagrad_descent(const vector<DataPoint> &dataset, double, double, double);
+    void adagrad_descent(const vector<DataPoint> &dataset, double, double);
     void adadelta_descent(const vector<DataPoint> &dataset, double, double, double);
-    void adam_descent(const vector<DataPoint> &dataset, double, double, double);
+    void adam_descent(const vector<DataPoint> &dataset, double, double, double, double);
 
     double set_accuracy(const vector<DataPoint> &dataset);
     double set_cost(const vector<DataPoint> &dataset);

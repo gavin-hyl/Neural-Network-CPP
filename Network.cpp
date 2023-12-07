@@ -152,33 +152,100 @@ void NeuralNetwork::momentum_descent(const vector<DataPoint> &dataset, double dw
             w_grad.at(layer).setZero();
             b_grad.at(layer).setZero();
         }
-
-        if (i % (dataset.size()/5) == 0)
-        {
-            // std::cout << prev_w_grad.at(0) << "\n";
-            evaluate(dataset);
-        }
     }
 }
 
 void NeuralNetwork::nag_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
 {
-    throw std::logic_error("Not implemented");
+    back_propagate(dataset.at(0));
+    vector<MatrixXd> prev_w_grad = w_grad;
+    vector<MatrixXd> prev_b_grad = b_grad;
+    int n_weights = weights.size();
+
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        NeuralNetwork nn_cpy = *this;
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            nn_cpy.weights.at(layer) -= prev_w_grad[layer] * gamma;
+            nn_cpy.biases.at(layer) -= prev_b_grad[layer] * gamma;
+        }
+        nn_cpy.back_propagate(dataset[i]);
+
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            prev_w_grad.at(layer) = prev_w_grad[layer] * gamma + nn_cpy.w_grad[layer] * dw;
+            prev_b_grad.at(layer) = prev_b_grad[layer] * gamma + nn_cpy.b_grad[layer] * db;
+            weights.at(layer) -= prev_w_grad[layer];
+            biases.at(layer) -= prev_b_grad[layer];
+            w_grad.at(layer).setZero();
+            b_grad.at(layer).setZero();
+        }
+    }
 }
 
-void NeuralNetwork::adagrad_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
+void NeuralNetwork::adagrad_descent(const vector<DataPoint> &dataset, double eta, double epsilon)
 {
-    throw std::logic_error("Not implemented");
+    vector<double> grad_magnitude_sum(n_layers);
+    int n_weights = weights.size();
+
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        back_propagate(dataset[i]);
+
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            grad_magnitude_sum.at(layer) +=  w_grad[layer].norm() + b_grad[layer].norm();
+            weights.at(layer) -= w_grad[layer] * eta / sqrt(grad_magnitude_sum.at(layer) + epsilon);
+            biases.at(layer) -= b_grad[layer] * eta / sqrt(grad_magnitude_sum.at(layer) + epsilon);
+            w_grad.at(layer).setZero();
+            b_grad.at(layer).setZero();
+        }
+    }
 }
 
-void NeuralNetwork::adadelta_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
+void NeuralNetwork::adadelta_descent(const vector<DataPoint> &dataset, double eta, double e, double gamma)
 {
-    throw std::logic_error("Not implemented");
+    vector<double> grad_magnitude_sum(n_layers);
+    int n_weights = weights.size();
+
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        back_propagate(dataset[i]);
+
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            grad_magnitude_sum.at(layer) =  grad_magnitude_sum.at(layer) * gamma + (w_grad[layer].norm() + b_grad[layer].norm()) *(1-gamma);
+            weights.at(layer) -= w_grad[layer] * eta / sqrt(grad_magnitude_sum.at(layer) + e);
+            biases.at(layer) -= b_grad[layer] * eta / sqrt(grad_magnitude_sum.at(layer) + e);
+            w_grad.at(layer).setZero();
+            b_grad.at(layer).setZero();
+        }
+    }
 }
 
-void NeuralNetwork::adam_descent(const vector<DataPoint> &dataset, double dw, double db, double gamma)
+void NeuralNetwork::adam_descent(const vector<DataPoint> &dataset, double b1, double b2, double e, double eta)
 {
-    throw std::logic_error("Not implemented");
+    vector<double> w_first_moment(n_layers);
+    vector<double> b_first_moment(n_layers);
+    vector<double> second_moment(n_layers);
+    int n_weights = weights.size();
+
+    for (int i = 0; i < dataset.size(); i++)
+    {
+        back_propagate(dataset[i]);
+
+        for (int layer = 0; layer < n_weights; layer++)
+        {
+            w_first_moment.at(layer) = w_first_moment.at(layer) * b1 / (1-b1) + w_grad[layer].norm();
+            b_first_moment.at(layer) = b_first_moment.at(layer) * b1 / (1-b1) +  b_grad[layer].norm();
+            second_moment.at(layer) = second_moment.at(layer) * b2 / (1-b2) + (w_grad[layer].squaredNorm() + b_grad[layer].squaredNorm());
+            weights.at(layer) -= w_grad[layer] * eta / (sqrt(second_moment.at(layer)) + e);
+            biases.at(layer) -= b_grad[layer] * eta / (sqrt(second_moment.at(layer)) + e);
+            w_grad.at(layer).setZero();
+            b_grad.at(layer).setZero();
+        }
+    }
 }
 
 double NeuralNetwork::set_accuracy(const vector<DataPoint> &dataset)
